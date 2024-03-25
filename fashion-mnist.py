@@ -39,7 +39,19 @@ seq_cnn = nn.Sequential(
     nn.Flatten(),
     nn.Linear(784, 10),
 )
-
+bench_cnn = nn.Sequential(
+    # in: N x 1 x 28 x 28
+    nn.Conv2d(in_channels=1, out_channels=32, kernel_size=5, padding=2),
+    nn.ReLU(),
+    nn.MaxPool2d(kernel_size=2, stride=2),
+    nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5, padding=2),
+    nn.ReLU(),
+    nn.MaxPool2d(kernel_size=2, stride=2),
+    nn.Flatten(),
+    nn.Linear(7 * 7 * 64, 1024),
+    nn.ReLU(),
+    nn.Linear(1024, 10),
+)
 loss_fn = nn.CrossEntropyLoss()
 
 
@@ -112,7 +124,7 @@ def plot_results(n, model):
     plt.show()
 
 
-model = seq_cnn
+model = bench_cnn
 train(model, 100, 0.001)
 accuracy(model)
 plot_results(5, model)
