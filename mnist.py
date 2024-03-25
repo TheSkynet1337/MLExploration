@@ -48,14 +48,21 @@ torchvision_mlp = torchvision.ops.MLP(
     28 * 28, [512, 512, 10], activation_layer=torch.nn.ReLU, bias=True, dropout=0.3
 )
 shallow_mlp = nn.Sequential(nn.Linear(28 * 28, 512), nn.ReLU(), nn.Linear(512, 10))
-
+super_deep_mlp = torchvision.ops.MLP(
+    28 * 28,
+    [512, 512, 512, 512, 512, 10],
+    activation_layer=torch.nn.ReLU,
+    bias=True,
+    dropout=0.0,
+)
 
 loss_fn = nn.CrossEntropyLoss()
 
 
 def train(model, epochs, lr):
     model.to(device)
-    optimizer = torch.optim.SGD(model.parameters(), lr, momentum=0.9)
+    # optimizer = torch.optim.SGD(model.parameters(), lr, momentum=0.9)
+    optimizer = torch.optim.Adam(model.parameters(), weight_decay=0.001)
     last_vloss = 0.0
     for epoch in tqdm(range(epochs)):
         last_loss = 0.0
@@ -71,8 +78,8 @@ def train(model, epochs, lr):
             loss = loss_fn(outputs, labels)
             loss.backward()
             optimizer.step()
-            last_loss = loss.item()
-        print(f"Last Loss: {last_loss}")
+            last_loss += loss.item()
+        print(f"Last Epoch avg Loss: {last_loss/len(train_data)}")
 
     model.eval()
 
@@ -82,8 +89,8 @@ def train(model, epochs, lr):
             vinputs, vlabels = vinputs.to(device), vlabels.to(device)
             voutputs = model(vinputs)
             vloss = loss_fn(voutputs, vlabels)
-            last_vloss = vloss
-    print(f"Val Loss: {last_vloss}")
+            last_vloss += vloss
+    print(f"Final Epoch avg Val Loss: {last_vloss/len(val_data)}")
 
 
 def accuracy(model):
@@ -113,8 +120,8 @@ def plot_results(n, model):
     plt.show()
 
 
-model = torchvision_mlp
-train(model=model, epochs=10, lr=0.01)
+model = super_deep_mlp
+train(model=model, epochs=100, lr=0.005)
 accuracy(model)
 plot_results(5, model)
 
